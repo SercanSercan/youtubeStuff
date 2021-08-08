@@ -60,12 +60,11 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
         });
     };
 
-    const addSingleMarker = ():void => {
+    useEffect(() => {
         if (marker) {
             addMarker(new google.maps.LatLng(marker.latitude, marker.longitude));
         }
-    };
-    useEffect(addSingleMarker, [marker]);
+    }, [marker]);
 
     const addMarker = (location: GoogleLatLng): void => {
         const marker:GoogleMarker = new google.maps.Marker({
