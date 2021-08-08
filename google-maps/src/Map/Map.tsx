@@ -21,13 +21,14 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
     const ref = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<GoogleMap>();
     const [marker, setMarker] = useState<IMarker>();
+    const [homeMarker, setHomeMarker] = useState<GoogleMarker>();
 
     const startMap = (): void => {
         if (!map) {
             defaultMapStart();
         } else {
             const homeLocation = new google.maps.LatLng(65.166013499, 13.3698147);
-            addHomeMarker(homeLocation);
+            setHomeMarker(addHomeMarker(homeLocation));
         }
     };
     useEffect(startMap, [map]);
@@ -74,8 +75,8 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
         });
     };
 
-    const addHomeMarker = (location: GoogleLatLng): void => {
-        const homeMarker:GoogleMarker = new google.maps.Marker({
+    const addHomeMarker = (location: GoogleLatLng): GoogleMarker => {
+        const homeMarkerConst:GoogleMarker = new google.maps.Marker({
             position: location,
             map: map,
             icon: {
@@ -83,12 +84,13 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
             }
         });
 
-        homeMarker.addListener('click', () => {
+        homeMarkerConst.addListener('click', () => {
             if (map) {
                 map.panTo(location);
                 map.setZoom(10);
             }
         });
+        return homeMarkerConst;
     };
 
     const getIconAttributes = (iconColor: string) => {
