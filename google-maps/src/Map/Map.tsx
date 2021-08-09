@@ -16,6 +16,9 @@ interface IMarker {
 type GoogleLatLng = google.maps.LatLng;
 type GoogleMap = google.maps.Map;
 type GoogleMarker = google.maps.Marker;
+type GooglePolyline = google.maps.Polyline;
+
+let lastLine:GooglePolyline;
 
 const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) => {
 
@@ -83,6 +86,26 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) 
             if (homePos && markerPos) {
                 const distanceInMeters = google.maps.geometry.spherical.computeDistanceBetween(homePos, markerPos);
                 setDistanceKm(Math.round(distanceInMeters / 1000));
+
+                if (lastLine) {
+                    lastLine.setMap(null);
+                }
+
+                lastLine = new google.maps.Polyline({
+                    path: [
+                        { lat: homePos.lat(), lng: homePos.lng() },
+                        { lat: markerPos.lat(), lng: markerPos.lng() },
+                    ],
+                    icons: [
+                        {
+                            icon: {
+                                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                            },
+                            offset: "100%",
+                        },
+                    ],
+                    map: map,
+                });
             }
         });
     };
