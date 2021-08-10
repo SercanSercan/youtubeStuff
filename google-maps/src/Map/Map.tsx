@@ -18,8 +18,6 @@ type GoogleMap = google.maps.Map;
 type GoogleMarker = google.maps.Marker;
 type GooglePolyline = google.maps.Polyline;
 
-let lastLine:GooglePolyline;
-
 const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) => {
 
     const ref = useRef<HTMLDivElement>(null);
@@ -27,6 +25,8 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) 
     const [marker, setMarker] = useState<IMarker>();
     const [homeMarker, setHomeMarker] = useState<GoogleMarker>();
     const [googleMarkers, setGoogleMarkers] = useState<GoogleMarker[]>([]);
+    const [listenerIdArray, setListenerIdArray] = useState<any[]>([]);
+    const [lastLine, setLastLine] = useState<GooglePolyline>();
 
     const startMap = (): void => {
         if (!map) {
@@ -80,7 +80,7 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) 
 
         setGoogleMarkers(googleMarkers => [...googleMarkers, marker]);
 
-        marker.addListener('click', () => {
+        const listenerId = marker.addListener('click', () => {
             const homePos = homeMarker?.getPosition();
             const markerPos = marker.getPosition();
             if (homePos && markerPos) {
@@ -91,7 +91,7 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) 
                     lastLine.setMap(null);
                 }
 
-                lastLine = new google.maps.Polyline({
+                const line = new google.maps.Polyline({
                     path: [
                         { lat: homePos.lat(), lng: homePos.lng() },
                         { lat: markerPos.lat(), lng: markerPos.lng() },
@@ -106,9 +106,27 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceKm}) 
                     ],
                     map: map,
                 });
+                setLastLine(line);
             }
         });
+        setListenerIdArray(listenerIdArray => [...listenerIdArray, listenerId]);
     };
+
+    useEffect(() => {
+        listenerIdArray.forEach((listenerId) => {
+            google.maps.event.removeListener(listenerId);
+        });
+
+        setListenerIdArray([]);
+        setGoogleMarkers([]);
+
+        googleMarkers.forEach((googleMarker) => {
+            const markerPosition = googleMarker.getPosition();
+            if (markerPosition) {
+                addMarker(markerPosition);
+            }
+        });
+    }, [lastLine]);
 
     const addHomeMarker = (location: GoogleLatLng): GoogleMarker => {
         const homeMarkerConst:GoogleMarker = new google.maps.Marker({
