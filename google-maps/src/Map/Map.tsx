@@ -4,6 +4,7 @@ import './Map.scss';
 interface IMap {
     mapType: google.maps.MapTypeId;
     mapTypeControl?: boolean;
+    setDistanceInKm: React.Dispatch<React.SetStateAction<number>>;
 }
 
 interface IMarker {
@@ -16,7 +17,7 @@ type GoogleLatLng = google.maps.LatLng;
 type GoogleMap = google.maps.Map;
 type GoogleMarker = google.maps.Marker;
 
-const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
+const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceInKm}) => {
 
     const ref = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<GoogleMap>();
@@ -81,7 +82,7 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
             const markerPos = marker.getPosition();
             if (homePos && markerPos) {
                 const distanceInMeters = google.maps.geometry.spherical.computeDistanceBetween(homePos, markerPos);
-                console.log(distanceInMeters);
+                setDistanceInKm(Math.round(distanceInMeters / 1000));
             }
         });
     };
