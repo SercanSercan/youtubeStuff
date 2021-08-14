@@ -18,8 +18,6 @@ type GoogleMap = google.maps.Map;
 type GoogleMarker = google.maps.Marker;
 type GooglePolyline = google.maps.Polyline;
 
-let lastLine:GooglePolyline;
-
 const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceInKm}) => {
 
     const ref = useRef<HTMLDivElement>(null);
@@ -27,6 +25,8 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceInKm}
     const [marker, setMarker] = useState<IMarker>();
     const [homeMarker, setHomeMarker] = useState<GoogleMarker>();
     const [googleMarkers, setGoogleMarkers] = useState<GoogleMarker[]>([]);
+    const [listenerIdArray, setListenerIdArray] = useState<any[]>([]);
+    const [LastLineHook, setLastLineHook] = useState<GooglePolyline>();
 
     const startMap = (): void => {
         if (!map) {
@@ -80,14 +80,18 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceInKm}
 
         setGoogleMarkers(googleMarkers => [...googleMarkers, marker]);
 
-        marker.addListener('click', () => {
+        const listenerId = marker.addListener('click', () => {
             const homePos = homeMarker?.getPosition();
             const markerPos = marker.getPosition();
             if (homePos && markerPos) {
                 const distanceInMeters = google.maps.geometry.spherical.computeDistanceBetween(homePos, markerPos);
                 setDistanceInKm(Math.round(distanceInMeters / 1000));
 
-                lastLine = new google.maps.Polyline({
+                if (LastLineHook) {
+                    LastLineHook.setMap(null);
+                }
+
+                const line = new google.maps.Polyline({
                     path: [
                         { lat: homePos.lat(), lng: homePos.lng()},
                         { lat: markerPos.lat(), lng: markerPos.lng()},
@@ -102,9 +106,28 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false, setDistanceInKm}
                     ],
                     map: map,
                 });
+
+                setLastLineHook(line);
             }
         });
+
+        setListenerIdArray(listenerIdArray => [...listenerIdArray, listenerId]);
     };
+
+    useEffect(() => {
+        listenerIdArray.forEach((listenerId) => {
+           google.maps.event.removeListener(listenerId);
+        });
+
+        setListenerIdArray([]);
+        setGoogleMarkers([]);
+        googleMarkers.forEach((googleMarker) => {
+            const markerPosition = googleMarker.getPosition();
+            if (markerPosition) {
+                addMarker(markerPosition);
+            }
+        });
+    }, [LastLineHook]);
 
     const addHomeMarker = (location: GoogleLatLng): GoogleMarker => {
         const homeMarkerConst:GoogleMarker = new google.maps.Marker({
