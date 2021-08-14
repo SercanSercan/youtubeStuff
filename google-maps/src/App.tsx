@@ -15,7 +15,11 @@ function App() {
     }, []);
 
     const renderDistanceSentence = () => {
-        return `Distance between selected marker and home address is ${distanceInKm}km.`;
+        return (
+            <div className='distance-info'>
+                {`Distance between selected marker and home address is ${distanceInKm}km.`}
+            </div>
+        );
     };
 
     return (
