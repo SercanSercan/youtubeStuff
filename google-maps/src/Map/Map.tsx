@@ -75,12 +75,17 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
     };
 
     const addHomeMarker = (location: GoogleLatLng): void => {
-        const marker:GoogleMarker = new google.maps.Marker({
+        const homeMarker:GoogleMarker = new google.maps.Marker({
             position: location,
             map: map,
             icon: {
                 url: window.location.origin + '/assets/images/homeAddressMarker.png'
             }
+        });
+
+        homeMarker.addListener('click', () => {
+            map?.panTo(location);
+            map?.setZoom(6);
         });
     };
 
