@@ -22,6 +22,7 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
     const [map, setMap] = useState<GoogleMap>();
     const [marker, setMarker] = useState<IMarker>();
     const [homeMarker, setHomeMarker] = useState<GoogleMarker>();
+    const [googleMarkers, setGoogleMarkers] = useState<GoogleMarker[]>([]);
 
     const startMap = (): void => {
         if (!map) {
@@ -60,18 +61,28 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
         });
     };
 
-    const addSingleMarker = ():void => {
+    useEffect(() => {
         if (marker) {
             addMarker(new google.maps.LatLng(marker.latitude, marker.longitude));
         }
-    };
-    useEffect(addSingleMarker, [marker]);
+    }, [marker]);
 
     const addMarker = (location: GoogleLatLng): void => {
         const marker:GoogleMarker = new google.maps.Marker({
             position: location,
             map: map,
             icon: getIconAttributes('#000000')
+        });
+
+        setGoogleMarkers(googleMarkers => [...googleMarkers, marker]);
+
+        marker.addListener('click', () => {
+            const homePos = homeMarker?.getPosition();
+            const markerPos = marker.getPosition();
+            if (homePos && markerPos) {
+                const distanceInMeters = google.maps.geometry.spherical.computeDistanceBetween(homePos, markerPos);
+                console.log(distanceInMeters);
+            }
         });
     };
 
