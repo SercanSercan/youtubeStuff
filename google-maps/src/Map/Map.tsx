@@ -25,6 +25,9 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
     const startMap = (): void => {
         if (!map) {
             defaultMapStart();
+        } else {
+            const homeLocation = new google.maps.LatLng(65.166013499, 13.3698147);
+            addHomeMarker(homeLocation);
         }
     };
     useEffect(startMap, [map]);
@@ -68,6 +71,16 @@ const Map: React.FC<IMap> = ({ mapType, mapTypeControl = false}) => {
             position: location,
             map: map,
             icon: getIconAttributes('#000000')
+        });
+    };
+
+    const addHomeMarker = (location: GoogleLatLng): void => {
+        const marker:GoogleMarker = new google.maps.Marker({
+            position: location,
+            map: map,
+            icon: {
+                url: window.location.origin + '/assets/images/homeAddressMarker.png'
+            }
         });
     };
 
